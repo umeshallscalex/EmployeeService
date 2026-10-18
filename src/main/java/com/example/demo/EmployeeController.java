@@ -18,13 +18,16 @@ public class EmployeeController {
 
     @GetMapping("/getEmpDetails")
     public List<Employee> getEmpDetails() {
-
         return empService.getAllEmployees();
     }
 
     @PostMapping("/addEmpDetails")
     public List<Employee> addEmpDetails(@RequestBody Employee employee) {
+        return empService.saveEmployee(employee);
+    }
 
-        return empService.addEmployee(employee); // Return the added employee details
+    @PutMapping("/updateEmpDetails")
+    public List<Employee> updateEmpDetails(@RequestBody Employee employee) {
+        return empService.saveEmployee(employee);
     }
 }
