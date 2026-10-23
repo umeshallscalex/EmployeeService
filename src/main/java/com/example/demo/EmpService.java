@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,12 @@ public class EmpService {
         employees.add(employee);
         return employees;
     }
+    public List<Employee> deleteEmpDetails(@PathVariable int empId) {
+        employees.removeIf(emp -> emp.getEmpId() == empId);
+        return employees;
+    }
+
+
 }
 
 

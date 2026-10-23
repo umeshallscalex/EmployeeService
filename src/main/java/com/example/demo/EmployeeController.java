@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+
+@RequestMapping("/EmpService")
 public class EmployeeController {
 
     @Autowired
@@ -29,5 +31,10 @@ public class EmployeeController {
     @PutMapping("/updateEmpDetails")
     public List<Employee> updateEmpDetails(@RequestBody Employee employee) {
         return empService.saveEmployee(employee);
+    }
+
+    @DeleteMapping("/deleteEmpDetails/{empId}")
+    public List<Employee> deleteEmpDetails(@PathVariable int empId) {
+        return empService.deleteEmpDetails(empId);
     }
 }

@@ -1,11 +1,18 @@
 package com.example.demo;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import org.springframework.stereotype.Service;
+
 import java.util.Objects;
 
 public class Employee {
 
+
     int empId;
     String empName;
+    Department department;
+
     public int getEmpId() {
         return empId;
     }
@@ -23,6 +30,13 @@ public class Employee {
         if (o == null || getClass() != o.getClass()) return false;
         Employee employee = (Employee) o;
         return empId == employee.empId && Objects.equals(empName, employee.empName);
+    }
+    @Override
+    public String toString() {
+        return "Employee{" +
+                "empId=" + empId +
+                ", empName='" + empName + '\'' +
+                '}';
     }
 
     @Override
