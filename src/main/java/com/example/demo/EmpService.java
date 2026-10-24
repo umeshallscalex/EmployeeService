@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -30,6 +31,11 @@ public class EmpService {
         }
 
         employees.add(employee);
+        List<Employee> sortedList = new ArrayList<>(employees);
+        //sortedList.sort((e1, e2) -> e1.getEmpName()>e2.empId? 1 : e1.empId<e2.empId? -1 : 0);
+        sortedList.sort((e1, e2) -> e1.getEmpName().compareTo(e2.getEmpName()));
+        employees.clear();
+        employees.addAll(sortedList);
         return employees;
     }
     public List<Employee> deleteEmpDetails(@PathVariable int empId) {

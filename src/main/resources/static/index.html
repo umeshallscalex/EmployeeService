@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Employee Directory</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: #182230;
+            background: #f4f7fb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 48px 20px;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .subtitle {
+            margin: 8px 0 28px;
+            color: #667085;
+        }
+
+        .panel {
+            padding: 24px;
+            margin-bottom: 20px;
+            background: #fff;
+            border: 1px solid #e4e7ec;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgb(16 24 40 / 5%);
+        }
+
+        h2 {
+            margin: 0 0 18px;
+            font-size: 18px;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: 1fr 2fr auto;
+            gap: 16px;
+            align-items: end;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            min-height: 42px;
+            padding: 9px 12px;
+            border: 1px solid #d0d5dd;
+            border-radius: 7px;
+            font: inherit;
+        }
+
+        input:focus {
+            outline: 3px solid #dbeafe;
+            border-color: #3b82f6;
+        }
+
+        button {
+            min-height: 42px;
+            padding: 0 18px;
+            color: #fff;
+            background: #2563eb;
+            border: 0;
+            border-radius: 7px;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .remove-button {
+            min-height: 34px;
+            padding: 0 12px;
+            background: #b42318;
+            font-size: 14px;
+        }
+
+        .remove-button:hover {
+            background: #912018;
+        }
+
+        .modify-button {
+            min-height: 34px;
+            padding: 0 12px;
+            margin-right: 8px;
+            font-size: 14px;
+        }
+
+        button:disabled {
+            cursor: wait;
+            opacity: 0.65;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #eaecf0;
+        }
+
+        th {
+            color: #475467;
+            background: #f9fafb;
+            font-size: 13px;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        #message {
+            min-height: 20px;
+            margin: 14px 0 0;
+            color: #b42318;
+            font-size: 14px;
+        }
+
+        #message:empty {
+            display: none;
+        }
+
+        @media (max-width: 620px) {
+            body {
+                padding: 28px 14px;
+            }
+
+            .panel {
+                padding: 18px;
+            }
+
+            form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Employee Directory</h1>
+    <p class="subtitle">View employees and add a new employee.</p>
+
+    <section class="panel" aria-labelledby="add-heading">
+        <h2 id="form-heading">Add employee</h2>
+        <form id="employee-form">
+            <div>
+                <label for="emp-id">Employee ID</label>
+                <input id="emp-id" name="empId" type="number" min="1" step="1" required>
+            </div>
+            <div>
+                <label for="emp-name">Employee name</label>
+                <input id="emp-name" name="empName" type="text" maxlength="100" required>
+            </div>
+            <div>
+                <button id="add-button" type="submit">Add employee</button>
+                <button id="cancel-button" class="remove-button" type="button" hidden>Cancel</button>
+            </div>
+        </form>
+        <p id="message" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel" aria-labelledby="employees-heading">
+        <h2 id="employees-heading">Employees</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th scope="col">Employee ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="employee-list">
+                <tr><td colspan="3">Loading employees...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<script>
+    const apiUrl = "/EmpService";
+    const employeeList = document.getElementById("employee-list");
+    const form = document.getElementById("employee-form");
+    const addButton = document.getElementById("add-button");
+    const cancelButton = document.getElementById("cancel-button");
+    const idInput = document.getElementById("emp-id");
+    const nameInput = document.getElementById("emp-name");
+    const formHeading = document.getElementById("form-heading");
+    const message = document.getElementById("message");
+    let editingEmployeeId = null;
+
+    function stopEditing() {
+        editingEmployeeId = null;
+        form.reset();
+        idInput.readOnly = false;
+        formHeading.textContent = "Add employee";
+        addButton.textContent = "Add employee";
+        cancelButton.hidden = true;
+    }
+
+    function editEmployee(employee) {
+        editingEmployeeId = employee.empId;
+        idInput.value = employee.empId;
+        idInput.readOnly = true;
+        nameInput.value = employee.empName ?? "";
+        formHeading.textContent = "Modify employee";
+        addButton.textContent = "Save changes";
+        cancelButton.hidden = false;
+        message.textContent = "";
+        form.scrollIntoView({ behavior: "smooth", block: "center" });
+        nameInput.focus();
+    }
+
+    function renderEmployees(employees) {
+        employeeList.replaceChildren();
+
+        if (employees.length === 0) {
+            const row = employeeList.insertRow();
+            const cell = row.insertCell();
+            cell.colSpan = 3;
+            cell.textContent = "No employees found.";
+            return;
+        }
+
+        employees.forEach((employee) => {
+            const row = employeeList.insertRow();
+            row.insertCell().textContent = employee.empId;
+            row.insertCell().textContent = employee.empName ?? "";
+            const actionCell = row.insertCell();
+            const modifyButton = document.createElement("button");
+            modifyButton.type = "button";
+            modifyButton.className = "modify-button";
+            modifyButton.textContent = "Modify";
+            modifyButton.setAttribute("aria-label", `Modify ${employee.empName ?? "employee"} (ID ${employee.empId})`);
+            modifyButton.addEventListener("click", () => editEmployee(employee));
+            actionCell.append(modifyButton);
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "remove-button";
+            removeButton.textContent = "Remove";
+            removeButton.setAttribute("aria-label", `Remove ${employee.empName ?? "employee"} (ID ${employee.empId})`);
+            removeButton.addEventListener("click", () => removeEmployee(employee.empId, removeButton));
+            actionCell.append(removeButton);
+        });
+    }
+
+    async function removeEmployee(empId, button) {
+        message.textContent = "";
+        button.disabled = true;
+
+        try {
+            const response = await fetch(`${apiUrl}/deleteEmpDetails/${encodeURIComponent(empId)}`, {
+                method: "DELETE"
+            });
+            if (!response.ok) {
+                throw new Error(`Could not remove employee (HTTP ${response.status}).`);
+            }
+
+            renderEmployees(await response.json());
+            message.style.color = "#067647";
+            message.textContent = "Employee removed successfully.";
+        } catch (error) {
+            message.style.color = "#b42318";
+            message.textContent = error.message;
+            button.disabled = false;
+        }
+    }
+
+    async function loadEmployees() {
+        const response = await fetch(`${apiUrl}/getEmpDetails`);
+        if (!response.ok) {
+            throw new Error(`Could not load employees (HTTP ${response.status}).`);
+        }
+        renderEmployees(await response.json());
+    }
+
+    cancelButton.addEventListener("click", stopEditing);
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        message.textContent = "";
+        addButton.disabled = true;
+
+        const formData = new FormData(form);
+        const employee = {
+            empId: Number(formData.get("empId")),
+            empName: String(formData.get("empName")).trim()
+        };
+        const isEditing = editingEmployeeId !== null;
+
+        try {
+            const response = await fetch(`${apiUrl}/${isEditing ? "updateEmpDetails" : "addEmpDetails"}`, {
+                method: isEditing ? "PUT" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(employee)
+            });
+            if (!response.ok) {
+                throw new Error(`Could not ${isEditing ? "modify" : "add"} employee (HTTP ${response.status}).`);
+            }
+
+            renderEmployees(await response.json());
+            stopEditing();
+            message.textContent = `Employee ${isEditing ? "modified" : "added"} successfully.`;
+            message.style.color = "#067647";
+        } catch (error) {
+            message.style.color = "#b42318";
+            message.textContent = error.message;
+        } finally {
+            addButton.disabled = false;
+        }
+    });
+
+    loadEmployees().catch((error) => {
+        employeeList.replaceChildren();
+        const row = employeeList.insertRow();
+        const cell = row.insertCell();
+        cell.colSpan = 3;
+        cell.textContent = "Could not load employees.";
+        message.style.color = "#b42318";
+        message.textContent = error.message;
+    });
+</script>
+</body>
+</html>
