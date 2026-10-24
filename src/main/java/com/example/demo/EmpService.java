@@ -31,6 +31,12 @@ public class EmpService {
         employees.add(employee);
         return employees;
     }
+
+    public List<Employee> deleteEmployee(int id) {
+        employees.removeIf(employee -> employee.getEmpId() == id);
+        return employees;
+    }
 }
+
 
 

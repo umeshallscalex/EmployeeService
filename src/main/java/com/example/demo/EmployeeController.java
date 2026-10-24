@@ -30,4 +30,9 @@ public class EmployeeController {
     public List<Employee> updateEmpDetails(@RequestBody Employee employee) {
         return empService.saveEmployee(employee);
     }
+
+    @DeleteMapping("/deleteEmpDetails/{id}")
+    public List<Employee> deleteEmpDetails(@PathVariable int id) {
+        return empService.deleteEmployee(id);
+    }
 }
