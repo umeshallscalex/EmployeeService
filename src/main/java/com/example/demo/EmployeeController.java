@@ -7,7 +7,7 @@ import java.util.List;
 
 @RestController
 
-@RequestMapping("/EmpService")
+@RequestMapping("")
 public class EmployeeController {
 
     @Autowired
