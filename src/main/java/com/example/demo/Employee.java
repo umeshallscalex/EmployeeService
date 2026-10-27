@@ -6,13 +6,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
-@Service
+@Entity
 public class Employee {
 
 
+    @Id
     int empId;
     String empName;
-    Department department;
+
 
     public int getEmpId() {
         return empId;
