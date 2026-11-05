@@ -9,11 +9,18 @@ import java.util.Objects;
 @Entity
 public class Employee {
 
-
     @Id
     int empId;
     String empName;
+    int departmentID;
 
+    public void setDepartmentID(int departmentID) {
+        this.departmentID = departmentID;
+    }
+
+    public int getDepartmentID() {
+        return departmentID;
+    }
 
     public int getEmpId() {
         return empId;

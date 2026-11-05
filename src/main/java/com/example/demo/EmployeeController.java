@@ -37,4 +37,5 @@ public class EmployeeController {
     public List<Employee> deleteEmpDetails(@PathVariable int empId) {
         return empService.deleteEmpDetails(empId);
     }
+    
 }
