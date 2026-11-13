@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Log in | Employee Service</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: #182230;
+            background: #f4f7fb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            display: grid;
+            min-height: 100vh;
+            margin: 0;
+            padding: 24px;
+            place-items: center;
+        }
+
+        main {
+            width: min(100%, 440px);
+            padding: 32px;
+            background: #fff;
+            border: 1px solid #e4e7ec;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgb(16 24 40 / 5%);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        .subtitle {
+            margin: 8px 0 24px;
+            color: #667085;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 22px;
+            border-bottom: 1px solid #d0d5dd;
+        }
+
+        button {
+            min-height: 42px;
+            padding: 0 16px;
+            color: #475467;
+            background: transparent;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            border-radius: 7px 7px 0 0;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .tabs button[aria-selected="true"] {
+            color: #1d4ed8;
+            border-bottom-color: #2563eb;
+        }
+
+        form {
+            display: grid;
+            gap: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            min-height: 44px;
+            padding: 9px 12px;
+            border: 1px solid #d0d5dd;
+            border-radius: 7px;
+            font: inherit;
+        }
+
+        input:focus {
+            outline: 3px solid #dbeafe;
+            border-color: #3b82f6;
+        }
+
+        #submit-button {
+            color: #fff;
+            background: #2563eb;
+            border: 0;
+            border-radius: 7px;
+        }
+
+        #submit-button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            cursor: wait;
+            opacity: 0.65;
+        }
+
+        #message {
+            min-height: 20px;
+            margin: 14px 0 0;
+            color: #b42318;
+            font-size: 14px;
+        }
+
+        #message:empty {
+            display: none;
+        }
+
+        .home-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #2563eb;
+        }
+
+        @media (max-width: 480px) {
+            main {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Employee Service</h1>
+    <p class="subtitle">Log in to continue to the employee directory.</p>
+    <div class="tabs" role="group" aria-label="Account action">
+        <button id="login-mode" type="button" aria-selected="true">Log in</button>
+        <button id="register-mode" type="button" aria-selected="false">Create account</button>
+    </div>
+    <form id="account-form">
+        <div>
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" autocomplete="username"
+                   minlength="3" maxlength="50" pattern="[A-Za-z0-9._-]+" required>
+        </div>
+        <div>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password"
+                   minlength="8" maxlength="72" required>
+        </div>
+        <button id="submit-button" type="submit">Log in</button>
+    </form>
+    <p id="message" role="status" aria-live="polite"></p>
+    <a class="home-link" href="./">Back to employee service</a>
+</main>
+<script>
+    const apiUrl = "/EmployeeService";
+    const accountForm = document.getElementById("account-form");
+    const passwordInput = document.getElementById("password");
+    const submitButton = document.getElementById("submit-button");
+    const message = document.getElementById("message");
+    const loginModeButton = document.getElementById("login-mode");
+    const registerModeButton = document.getElementById("register-mode");
+    let accountMode = "login";
+
+    function setAccountMode(mode) {
+        accountMode = mode;
+        const isRegistration = mode === "register";
+        loginModeButton.setAttribute("aria-selected", String(!isRegistration));
+        registerModeButton.setAttribute("aria-selected", String(isRegistration));
+        submitButton.textContent = isRegistration ? "Create account" : "Log in";
+        passwordInput.autocomplete = isRegistration ? "new-password" : "current-password";
+        message.textContent = "";
+    }
+
+    loginModeButton.addEventListener("click", () => setAccountMode("login"));
+    registerModeButton.addEventListener("click", () => setAccountMode("register"));
+
+    accountForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        message.textContent = "";
+        submitButton.disabled = true;
+        const formData = new FormData(accountForm);
+        const credentials = {
+            username: String(formData.get("username")).trim(),
+            password: String(formData.get("password"))
+        };
+
+        try {
+            const response = await fetch(`${apiUrl}/api/auth/${accountMode}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(credentials)
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.message || `Request failed (HTTP ${response.status}).`);
+            }
+
+            if (accountMode === "register") {
+                accountForm.reset();
+                setAccountMode("login");
+                message.style.color = "#067647";
+                message.textContent = "Account created. You can now log in.";
+            } else {
+                window.location.assign(`${apiUrl}/`);
+            }
+        } catch (error) {
+            message.style.color = "#b42318";
+            message.textContent = error.message;
+        } finally {
+            submitButton.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
