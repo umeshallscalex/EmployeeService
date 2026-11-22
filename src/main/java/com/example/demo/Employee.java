@@ -13,6 +13,15 @@ public class Employee {
     int empId;
     String empName;
     int departmentID;
+    Double salary;
+
+    public void setSalary(Double salary) {
+        this.salary = salary;
+    }
+
+    public Double getSalary() {
+        return salary;
+    }
 
     public void setDepartmentID(int departmentID) {
         this.departmentID = departmentID;
